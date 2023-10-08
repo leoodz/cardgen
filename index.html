@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Image and Text Display</title>
+    <style>
+        #canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Image and Text Display</h1>
+    <input type="file" id="imageInput" accept="image/*">
+    <br>
+    <input type="text" id="text1" placeholder="Text 1">
+    <br>
+    <input type="text" id="text2" placeholder="Text 2">
+    <br>
+    <input type="text" id="text3" placeholder="Text 3">
+    <br>
+    <input type="text" id="text4" placeholder="Text 4">
+    <br>
+    <input type="text" id="text5" placeholder="Text 5">
+    <br>
+    <input type="text" id="text6" placeholder="Text 6">
+    <br>
+    <button onclick="displayImageAndText()">Display</button>
+    <br>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        function displayImageAndText() {
+            const imageInput = document.getElementById('imageInput');
+            const text1 = document.getElementById('text1').value;
+            const text2 = document.getElementById('text2').value;
+            const text3 = document.getElementById('text3').value;
+            const text4 = document.getElementById('text4').value;
+            const text5 = document.getElementById('text5').value;
+            const text6 = document.getElementById('text6').value;
+
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            const file = imageInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const imageSrc = e.target.result;
+                drawImageWithText(imageSrc, text1, text2, text3, text4, text5, text6);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function drawImageWithText(imageSrc, text1, text2, text3, text4, text5, text6) {
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            const image = new Image();
+            image.src = imageSrc;
+
+            const iconImage = new Image();
+            iconImage.src = './asset/icon.png';
+
+            // Wait for both the image and icon to load
+            Promise.all([loadImage(image), loadImage(iconImage)])
+                .then(([image, icon]) => {
+                    const textArray = [text1, text2, text3, text4, text5, text6];
+                    const textTitle = ["FullName: ", "Year Of Birth: ", "Address: ", "Card Number: ", "Bank Name: ", "Phone: "]
+
+                    const lineHeight = 20; // Adjust this value to change the spacing between lines
+                    const iconWidth = 20;
+                    const textMargin = 10;
+
+                    const iconY = image.height + lineHeight / 2 - iconWidth / 2 + 40;
+
+                    const textWidths = textArray.map(text => context.measureText(text).width);
+                    const maxTextWidth = Math.max(...textWidths);
+
+                    const canvasWidth = Math.max(image.width, maxTextWidth + iconWidth + textMargin * 3);
+                    const canvasHeight = image.height + 6 * lineHeight;
+
+                    canvas.width = canvasWidth;
+                    canvas.height = canvasHeight + 40;
+
+                    context.drawImage(image, 0, 0);
+
+                    context.font = '16px Arial';
+                    context.fillStyle = 'black';
+                    context.textAlign = 'center';
+
+                    context.drawImage(icon, textMargin, iconY + 10, iconWidth + 20, iconWidth + 20); // Draw the icon
+
+                    for (let i = 0; i < textArray.length; i++) {
+                        const text = textTitle[i] + textArray[i];
+                        const y = image.height + (i + 1) * lineHeight + lineHeight / 2;
+                        context.fillText(text, canvas.width / 2, y);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading image:', error);
+                });
+        }
+
+        function loadImage(image) {
+            return new Promise((resolve, reject) => {
+                image.onload = () => resolve(image);
+                image.onerror = () => reject(new Error('Error loading image'));
+            });
+        }
+    </script>
+</body>
+
+</html>
